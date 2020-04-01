@@ -1,0 +1,8 @@
+{
+    "mongodb": {
+        "host": "mininostrum.chickenkiller.com",
+        "port": 37017,
+        "username": "bsc-ls",
+        "password": "covid19mongodb"
+    }
+  }
