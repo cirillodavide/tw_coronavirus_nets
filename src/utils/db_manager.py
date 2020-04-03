@@ -43,23 +43,34 @@ class DBManager:
 			print ("pymongo ERROR:", err)
 
 
-	def aggregate(self, pipeline):
+	def aggregate(self, pipeline, tw_type):
 		lst = []
 		c = 0
 		for doc in self.__db[self.__collection].aggregate(pipeline, allowDiskUse=True):
 			if c < 200:
 				sentiment = "{:.4f}".format(random.uniform(-2, 2))
-				L = [ doc['id'], doc['user']['id'], doc['in_reply_to_status_id'], doc['in_reply_to_user_id'], sentiment ]
+				L = [ tw_type, doc['id'], doc['user']['id'], doc['in_reply_to_status_id'], doc['in_reply_to_user_id'], sentiment ]
 				lst.append(L)
 				c += 1
 			else:
 				break
 		df = pd.DataFrame.from_records(lst)
-		df.columns = ['id','user','in_reply_to_status_id','in_reply_to_user_id','sentiment']
+		df.columns = ['tw_type','id','user','in_reply_to_status_id','in_reply_to_user_id','sentiment']
 		return(df)
 
 	def __add_extra_filters(self, match, **kwargs):
 		return(match)
+
+
+	def get_retweets(self, **kwargs):
+		match = {
+			'retweeted_status': {'$exists': 1}, # it must be a retweet
+			'in_reply_to_status_id_str': {'$eq': None}, # it must not be a reply
+			'is_quote_status': False # it must not be a quote
+		}
+		match = self.__add_extra_filters(match, **kwargs)
+		pipeline = [{'$match': match}]
+		return(self.aggregate(pipeline, tw_type='retweet'))
 
 	def get_replies(self, **kwargs):
 		match = {
@@ -69,4 +80,12 @@ class DBManager:
 		}
 		match = self.__add_extra_filters(match, **kwargs)
 		pipeline = [{'$match': match}]
-		return(self.aggregate(pipeline))
+		return(self.aggregate(pipeline, tw_type='reply'))
+
+	def get_quotes(self, **kwargs):
+		match = {
+			'is_quote_status': True # it must be a quote
+		}
+		match = self.__add_extra_filters(match, **kwargs)
+		pipeline = [{'$match': match}]
+		return(self.aggregate(pipeline, tw_type='quote'))

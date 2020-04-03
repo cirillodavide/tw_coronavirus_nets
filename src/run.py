@@ -25,9 +25,9 @@ def run():
 @run.command()
 @click.option('--database', default='covid-un', help='MongoDB database to query.')
 @click.option('--collection', default='tweets', help='MongoDB collection to query.')
+@click.option('--tw_type', default='retweets', help='Type of tweet (retweets, replies, quotes).')
 
-
-def generate_graph(database, collection):
+def generate_graph(database, collection, tw_type):
     """
     Generate a graph by querying a MongoDB collection
     """
@@ -35,7 +35,7 @@ def generate_graph(database, collection):
     print('Generating the network...')
     na = NetworkGenerator(database, collection)
 
-    file_loc = na.get_replies()
+    file_loc = na.get_items(tw_type)
 
     print('Process has finished, results were stored in'+str(file_loc))
 
