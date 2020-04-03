@@ -60,11 +60,12 @@ class DBManager:
 				
 				#quoted_status_id will not appear if the tweet is not a quote
 				if tw_type != 'quote':
+					quoted_status_check = None
 					quoted_status_id = None
-					#quoted_user_id = None
+					quoted_user_id = None
 				else:
 					quoted_status_id = doc['quoted_status_id']
-					#quoted_user_id = doc['quoted_status']['user']['id']
+					quoted_user_id = None
 				
 				L = [ tw_type,
 					  doc['id'],
@@ -74,7 +75,7 @@ class DBManager:
 					  doc['in_reply_to_status_id'],
 					  doc['in_reply_to_user_id'],
 					  quoted_status_id,
-					  #quoted_user_id,
+					  quoted_user_id,
 					  sentiment ]
 				lst.append(L)
 				c += 1
@@ -89,7 +90,7 @@ class DBManager:
 					   'in_reply_to_status_id',
 					   'in_reply_to_user_id',
 					   'quoted_status_id',
-					   #'quoted_user_id',
+					   'quoted_user_id',
 					   'status_sentiment' ]
 		return(df)
 
