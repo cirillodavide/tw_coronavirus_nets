@@ -49,13 +49,36 @@ class DBManager:
 		for doc in self.__db[self.__collection].aggregate(pipeline, allowDiskUse=True):
 			if c < 200:
 				sentiment = "{:.4f}".format(random.uniform(-2, 2))
-				L = [ tw_type, doc['id'], doc['user']['id'], doc['in_reply_to_status_id'], doc['in_reply_to_user_id'], sentiment ]
+				
+				#retweeted_status will not appear if the tweet is not a retweet
+				if tw_type != 'retweet':
+					doc['retweeted_status'] = None
+				
+				#quoted_status_id will not appear if the tweet is not a quote
+				if tw_type != 'quote':
+					doc['quoted_status_id'] = None
+				
+				L = [ tw_type,
+					  doc['id'],
+					  doc['user']['id'],
+					  doc['retweeted_status'],
+					  doc['in_reply_to_status_id'],
+					  doc['in_reply_to_user_id'],
+					  doc['quoted_status_id'],
+					  sentiment ]
 				lst.append(L)
 				c += 1
 			else:
 				break
 		df = pd.DataFrame.from_records(lst)
-		df.columns = ['tw_type','id','user','in_reply_to_status_id','in_reply_to_user_id','sentiment']
+		df.columns = [ 'tw_type',
+					  'id',
+					  'user',
+					  'retweeted_status',
+					  'in_reply_to_status_id',
+					  'in_reply_to_user_id',
+					  'quoted_status_id',
+					  'sentiment' ]
 		return(df)
 
 	def __add_extra_filters(self, match, **kwargs):

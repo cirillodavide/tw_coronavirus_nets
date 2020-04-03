@@ -24,7 +24,7 @@ def run():
 
 @run.command()
 @click.option('--database', default='covid-un', help='MongoDB database to query.')
-@click.option('--collection', default='tweets', help='MongoDB collection to query.')
+@click.option('--collection', default='bsc-ls', help='MongoDB collection to query.')
 @click.option('--tw_type', default='retweets', help='Type of tweet (retweets, replies, quotes).')
 
 def generate_graph(database, collection, tw_type):
