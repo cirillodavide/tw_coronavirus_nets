@@ -52,33 +52,45 @@ class DBManager:
 				
 				#retweeted_status will not appear if the tweet is not a retweet
 				if tw_type != 'retweet':
-					doc['retweeted_status'] = None
+					retweeted_status_id = None
+					retweeted_user_id = None
+				else:
+					retweeted_status_id = doc['retweeted_status']['id']
+					retweeted_user_id = doc['retweeted_status']['user']['id']
 				
 				#quoted_status_id will not appear if the tweet is not a quote
 				if tw_type != 'quote':
-					doc['quoted_status_id'] = None
+					quoted_status_id = None
+					#quoted_user_id = None
+				else:
+					quoted_status_id = doc['quoted_status_id']
+					#quoted_user_id = doc['quoted_status']['user']['id']
 				
 				L = [ tw_type,
 					  doc['id'],
 					  doc['user']['id'],
-					  doc['retweeted_status']['id'],
+					  retweeted_status_id,
+					  retweeted_user_id,
 					  doc['in_reply_to_status_id'],
 					  doc['in_reply_to_user_id'],
-					  doc['quoted_status_id'],
+					  quoted_status_id,
+					  #quoted_user_id,
 					  sentiment ]
 				lst.append(L)
 				c += 1
 			else:
 				break
 		df = pd.DataFrame.from_records(lst)
-		df.columns = [ 'tw_type',
-					  'id',
-					  'user',
-					  'retweeted_status',
-					  'in_reply_to_status_id',
-					  'in_reply_to_user_id',
-					  'quoted_status_id',
-					  'sentiment' ]
+		df.columns = [ 'status_type',
+					   'status_id',
+					   'user_id',
+					   'retweeted_status_id',
+					   'retweeted_user_id',
+					   'in_reply_to_status_id',
+					   'in_reply_to_user_id',
+					   'quoted_status_id',
+					   #'quoted_user_id',
+					   'status_sentiment' ]
 		return(df)
 
 	def __add_extra_filters(self, match, **kwargs):
