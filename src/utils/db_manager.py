@@ -61,7 +61,7 @@ class DBManager:
 				L = [ tw_type,
 					  doc['id'],
 					  doc['user']['id'],
-					  doc['retweeted_status'],
+					  doc['retweeted_status']['id'],
 					  doc['in_reply_to_status_id'],
 					  doc['in_reply_to_user_id'],
 					  doc['quoted_status_id'],
