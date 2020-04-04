@@ -3,7 +3,11 @@
 usage:
 
 ## generate a graph
-python run.py generate-graph --database <database_name> --collection <collection_name> --tw_type <retweets|replies|quotes>
+
+python run.py generate-graph --database <database_name> --collection <collection_name> --where local --json_file <data_file> --tw_type <retweets|replies|quotes>
+
+python run.py generate-graph --database <database_name> --collection <collection_name> --where remote --json_file <config_file> --tw_type <retweets|replies|quotes>
 
 ## analyze a graph
-python run.py analyze-graph --graph ../sna/graphs/<edgelist_table>
+
+python run.py analyze-graph --graph <edgelist_file>

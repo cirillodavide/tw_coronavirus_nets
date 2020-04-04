@@ -1,2 +1,3 @@
-/src/config.json
-
+/sna/config/config.json
+/sna/data/*
+/sna/graphs/*

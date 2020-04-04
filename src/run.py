@@ -4,6 +4,7 @@ import os
 import pathlib
 import sys
 
+
 from network_analysis import NetworkAnalyzer, NetworkGenerator
 
 # Add the directory to the sys.path
@@ -22,18 +23,21 @@ def check_current_directory():
 def run():
     pass
 
+
 @run.command()
 @click.option('--database', default='covid-un', help='MongoDB database to query.')
 @click.option('--collection', default='bsc-ls', help='MongoDB collection to query.')
-@click.option('--tw_type', default='retweets', help='Type of tweet (retweets, replies, quotes).')
+@click.option('--where', default='remote', help='Local or remote database connection.')
+@click.option('--json_file', default='../sna/config/config.json', help='Local or remote database connection.')
+@click.option('--tw_type', default='retweets', help='Type of tweets (retweets, replies, quotes).')
 
-def generate_graph(database, collection, tw_type):
+def generate_graph(database, collection, where, json_file, tw_type):
     """
     Generate a graph by querying a MongoDB collection
     """
     check_current_directory()
     print('Generating the network...')
-    na = NetworkGenerator(database, collection)
+    na = NetworkGenerator(database, collection, where, json_file)
 
     file_loc = na.get_items(tw_type)
 
@@ -50,7 +54,7 @@ def analyze_graph(graph):
     check_current_directory()
     print('Analyzing the network...')
     na = NetworkAnalyzer(graph)
-    print(na.read_graph())
+    _ = na.read_graph()
     print('Process has finished, results were stored in...')
 
 if __name__ == "__main__":
