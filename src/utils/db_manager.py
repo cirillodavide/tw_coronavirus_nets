@@ -107,7 +107,10 @@ class DBManager:
 		c = 0
 		for doc in self.__db[self.__collection].aggregate(pipeline, allowDiskUse=True):
 
-			sentiment = "{:.4f}".format(random.uniform(-2, 2))
+			try:
+				sentiment = doc['sentiment']['score']
+			except:
+				sentiment = None
 				
 			#retweeted_status will not appear if the tweet is not a retweet
 			if tw_type != 'retweet':
