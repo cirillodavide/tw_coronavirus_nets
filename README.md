@@ -6,7 +6,7 @@ usage:
 
 python run.py generate-graph --database <database_name> --collection <collection_name> --where local --json_file <data_file> --tw_type <retweets|replies|quotes>
 
-python run.py generate-graph --database <database_name> --collection <collection_name> --where remote --json_file <config_file> --tw_type <retweets|replies|quotes>
+python run.py generate-graph --database <database_name> --collection <collection_name> --where remote --json_file <config_file> --tw_type <retweets|replies|quotes> --export yes
 
 ## analyze a graph
 

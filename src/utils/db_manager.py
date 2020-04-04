@@ -1,20 +1,23 @@
 from pymongo import MongoClient, errors
 from utils.get_config import get_config
-from bson.json_util import loads
+from utils.utils_spain import SPAIN_LANGUAGES, get_spain_places_regex
+from bson.json_util import loads, dumps
+from tqdm import tqdm
 
 import pathlib
 import pandas as pd
 import random
 import sys
+import json
 
 
 class DBManager:
 	__database = ''
 	__collection = ''
 	__db = ''
-	__spain_db = ''
+	__query = ''
 
-	def __init__(self, database, collection, where, json_file):
+	def __init__(self, database, collection, where, json_file, export):
 
 		if where == 'local':
 
@@ -77,50 +80,64 @@ class DBManager:
 				client = None
 				print ("pymongo ERROR:", err)
 
-			#print('>>>')
-			#db = self.__db
-			#tweets = self.__collection
-			#print(db.tweets.find({"$and": [{"lang": {"$in": ["es", "ca", "eu", "gl"]}}, {"$or": [{"place.country": "Spain"}, {"user.location": {"$in": ["espana","catalunya","spain","madrid","espanya"]}}]}]}).count())
-			#print('<<<')
+			
+			if export == 'yes':
+
+				export_path = '../sna/data/es-tweets.hpai.json'
+
+				self.__query = {'$and': [{'lang': {'$in': SPAIN_LANGUAGES}},
+								{'$or': [{'place.country': 'Spain'}, 
+								 	{'user.location': {'$in': \
+										get_spain_places_regex()}}]}]}
+
+				print ("Exporting cursor...")
+				cursor = self.search(self.__query)
+				file = open(export_path, "w")
+				for document in tqdm(cursor, total=470000):
+					file.write(dumps(document))
+					file.write("\n")
+				sys.exit("Bye!")
+
+	def search(self, query):
+		return self.__db[self.__collection].find(self.__query, no_cursor_timeout=True)
+
 
 	def aggregate(self, pipeline, tw_type):
 		lst = []
 		c = 0
 		for doc in self.__db[self.__collection].aggregate(pipeline, allowDiskUse=True):
-			if c < 470000:
-				sentiment = "{:.4f}".format(random.uniform(-2, 2))
+
+			sentiment = "{:.4f}".format(random.uniform(-2, 2))
 				
-				#retweeted_status will not appear if the tweet is not a retweet
-				if tw_type != 'retweet':
-					retweeted_status_id = None
-					retweeted_user_id = None
-				else:
-					retweeted_status_id = doc['retweeted_status']['id']
-					retweeted_user_id = doc['retweeted_status']['user']['id']
-				
-				#quoted_status_id will not appear if the tweet is not a quote
-				if tw_type != 'quote':
-					quoted_status_check = None
-					quoted_status_id = None
-					quoted_user_id = None
-				else:
-					quoted_status_id = doc['quoted_status_id']
-					quoted_user_id = None
-				
-				L = [ tw_type,
-					  doc['id'],
-				  	  doc['user']['id'],
-				  	  retweeted_status_id,
-				  	  retweeted_user_id,
-				  	  doc['in_reply_to_status_id'],
-				  	  doc['in_reply_to_user_id'],
-				  	  quoted_status_id,
-				  	  quoted_user_id,
-				  	  sentiment ]
-				lst.append(L)
-				c += 1
+			#retweeted_status will not appear if the tweet is not a retweet
+			if tw_type != 'retweet':
+				retweeted_status_id = None
+				retweeted_user_id = None
 			else:
-				break
+				retweeted_status_id = doc['retweeted_status']['id']
+				retweeted_user_id = doc['retweeted_status']['user']['id']
+				
+			#quoted_status_id will not appear if the tweet is not a quote
+			if tw_type != 'quote':
+				quoted_status_check = None
+				quoted_status_id = None
+				quoted_user_id = None
+			else:
+				quoted_status_id = doc['quoted_status_id']
+				quoted_user_id = None
+				
+			L = [ tw_type,
+				  doc['id'],
+			  	  doc['user']['id'],
+			  	  retweeted_status_id,
+			  	  retweeted_user_id,
+			  	  doc['in_reply_to_status_id'],
+			  	  doc['in_reply_to_user_id'],
+			  	  quoted_status_id,
+			  	  quoted_user_id,
+			  	  sentiment ]
+			lst.append(L)
+
 		df = pd.DataFrame.from_records(lst)
 		df.columns = [ 'status_type',
 					   'status_id',

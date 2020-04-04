@@ -12,9 +12,9 @@ import logging
 class NetworkGenerator:
 	__dbm_tweets = None
 
-	def __init__(self, database=None, colletion=None, where=None, json_file=None, tw_type=None):
+	def __init__(self, database=None, colletion=None, where=None, json_file=None, export=None):
 		if not None:
-			self.__dbm_tweets = DBManager(database, colletion, where, json_file)
+			self.__dbm_tweets = DBManager(database, colletion, where, json_file, export)
 
 	def get_retweets(self):
 		retweets = self.__dbm_tweets.get_retweets()

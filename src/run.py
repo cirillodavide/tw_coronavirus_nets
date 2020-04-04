@@ -30,14 +30,15 @@ def run():
 @click.option('--where', default='remote', help='Local or remote database connection.')
 @click.option('--json_file', default='../sna/config/config.json', help='Local or remote database connection.')
 @click.option('--tw_type', default='retweets', help='Type of tweets (retweets, replies, quotes).')
+@click.option('--export', default='no', help='Export filtered collection.')
 
-def generate_graph(database, collection, where, json_file, tw_type):
+def generate_graph(database, collection, where, json_file, tw_type, export):
     """
     Generate a graph by querying a MongoDB collection
     """
     check_current_directory()
     print('Generating the network...')
-    na = NetworkGenerator(database, collection, where, json_file)
+    na = NetworkGenerator(database, collection, where, json_file, export)
 
     file_loc = na.get_items(tw_type)
 
