@@ -1,3 +1,6 @@
 /sna/config/config.json
 /sna/data/*
 /sna/graphs/*
+/sna/extras/*
+notes.txt
+query_MongoDBCompass.txt

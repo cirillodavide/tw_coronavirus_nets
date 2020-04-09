@@ -104,7 +104,6 @@ class DBManager:
 
 	def aggregate(self, pipeline, tw_type):
 		lst = []
-		c = 0
 		for doc in self.__db[self.__collection].aggregate(pipeline, allowDiskUse=True):
 
 			try:
@@ -118,7 +117,7 @@ class DBManager:
 				retweeted_user_id = None
 			else:
 				retweeted_status_id = doc['retweeted_status']['id']
-				retweeted_user_id = doc['retweeted_status']['user']['id']
+				retweeted_user_id = doc['retweeted_status']['user']['screen_name']
 				
 			#quoted_status_id will not appear if the tweet is not a quote
 			if tw_type != 'quote':
@@ -127,15 +126,19 @@ class DBManager:
 				quoted_user_id = None
 			else:
 				quoted_status_id = doc['quoted_status_id']
-				quoted_user_id = None
+				try:
+					quoted_user_id = doc['quoted_status']['user']['screen_name']
+				except:
+					quoted_user_id = None
 				
 			L = [ tw_type,
 				  doc['id'],
-			  	  doc['user']['id'],
+			  	  doc['user']['screen_name'],
+			  	  doc['created_at'],
 			  	  retweeted_status_id,
 			  	  retweeted_user_id,
 			  	  doc['in_reply_to_status_id'],
-			  	  doc['in_reply_to_user_id'],
+			  	  doc['in_reply_to_screen_name'],
 			  	  quoted_status_id,
 			  	  quoted_user_id,
 			  	  sentiment ]
@@ -144,20 +147,21 @@ class DBManager:
 		df = pd.DataFrame.from_records(lst)
 		df.columns = [ 'status_type',
 					   'status_id',
-					   'user_id',
+					   'user_screen_name',
+					   'created_at',
 					   'retweeted_status_id',
-					   'retweeted_user_id',
+					   'retweeted_user_screen_name',
 					   'in_reply_to_status_id',
-					   'in_reply_to_user_id',
+					   'in_reply_to_user_screen_name',
 					   'quoted_status_id',
-					   'quoted_user_id',
+					   'quoted_user_screen_name',
 					   'status_sentiment' ]
 		return(df)
 
 	def __add_extra_filters(self, match, **kwargs):
 		return(match)
 
-
+	#filters
 	def get_retweets(self, **kwargs):
 		match = {
 			'retweeted_status': {'$exists': 1}, # it must be a retweet
@@ -186,3 +190,78 @@ class DBManager:
 		match = self.__add_extra_filters(match, **kwargs)
 		pipeline = [{'$match': match}]
 		return(self.aggregate(pipeline, tw_type='quote'))
+
+	def get_text(self, **kwargs):
+		match = {}
+		match = self.__add_extra_filters(match, **kwargs)
+		pipeline = [{'$match': match}]
+		
+		lst = []
+		for doc in self.__db[self.__collection].aggregate(pipeline, allowDiskUse=True):
+
+			try:
+				sentiment = doc['sentiment']['score']
+			except:
+				sentiment = None
+
+			L = [ doc['id'],
+				  doc['user']['screen_name'],
+				  doc['created_at'],
+				  sentiment,
+				  doc['text'] ]
+
+			lst.append(L)
+
+		df = pd.DataFrame.from_records(lst)
+		df.columns = [ 'status_id',
+					   'user_screen_name',
+					   'date',
+					   'sentiment',
+					   'text' ]
+		return(df)
+
+
+	def get_stats(self, **kwargs):
+		match = {}
+		match = self.__add_extra_filters(match, **kwargs)
+		pipeline = [{'$match': match}]
+
+		lst = []
+		for doc in self.__db[self.__collection].aggregate(pipeline, allowDiskUse=True):
+
+			try:
+				sentiment = doc['sentiment']['score']
+			except:
+				sentiment = None
+
+			try:
+				mentions = doc['entities']['user_mentions']['id']
+			except:
+				mentions = None
+
+			L = [ doc['id'],
+				  doc['user']['screen_name'],
+				  doc['user']['followers_count'],
+				  doc['user']['friends_count'],
+				  doc['user']['favourites_count'],
+				  doc['reply_count'],
+				  doc['retweet_count'],
+				  doc['quote_count'],
+				  sentiment,
+				  mentions ]
+			lst.append(L)
+
+		df = pd.DataFrame.from_records(lst)
+		df.columns = [ 'status_id',
+					   'user_screen_name',
+					   'followers_count',
+					   'friends_count',
+					   'favorites_count',
+					   'reply_count',
+					   'retweet_count',
+					   'quote_count',
+					   'sentiment',
+					   'mentions' ]
+		return(df)
+
+

@@ -5,8 +5,8 @@ import pandas as pd
 
 
 # Save dataframe to csv
-def save_csv(dataframe, file_name):
-    today = datetime.strftime(datetime.now(), '%m%d%y')
-    f_name = pathlib.Path(__file__).parents[2].joinpath('sna', 'graphs', file_name+'_'+today+'.csv')
-    dataframe.to_csv(f_name,index=False)
+def save_csv(dataframe, file_name, database, collection):
+    today = datetime.strftime(datetime.now(), '%d%m%y')
+    f_name = pathlib.Path(__file__).parents[2].joinpath('sna', 'graphs', database+'.'+collection+'.'+file_name+'.'+today+'.tsv')
+    dataframe.to_csv(f_name,index=False,sep='\t', encoding = 'utf-8')
     return(f_name)

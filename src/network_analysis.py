@@ -1,6 +1,6 @@
 from utils.db_manager import DBManager
 from utils.save_table import save_csv
-from utils.plot_graph import plot_with_PageRank
+from utils.plot_graph import plot_graph
 
 import networkx as nx
 import pandas as pd
@@ -11,24 +11,40 @@ import logging
 
 class NetworkGenerator:
 	__dbm_tweets = None
+	__database = ''
+	__collection = ''
 
-	def __init__(self, database=None, colletion=None, where=None, json_file=None, export=None):
+	def __init__(self, database=None, collection=None, where=None, json_file=None, export=None):
 		if not None:
-			self.__dbm_tweets = DBManager(database, colletion, where, json_file, export)
+			self.__dbm_tweets = DBManager(database, collection, where, json_file, export)
+
+		self.__database = database
+		self.__collection = collection
+
+
+	def get_stats(self):
+		stats = self.__dbm_tweets.get_stats()
+		file_loc = save_csv(stats,'stats', self.__database, self.__collection)
+		return(file_loc)
 
 	def get_retweets(self):
 		retweets = self.__dbm_tweets.get_retweets()
-		file_loc = save_csv(retweets,'retweets')
+		file_loc = save_csv(retweets,'retweets', self.__database, self.__collection)
 		return(file_loc)
 
 	def get_replies(self):
 		replies = self.__dbm_tweets.get_replies()
-		file_loc = save_csv(replies,'replies')
+		file_loc = save_csv(replies,'replies', self.__database, self.__collection)
 		return(file_loc)
 
 	def get_quotes(self):
 		quotes = self.__dbm_tweets.get_quotes()
-		file_loc = save_csv(quotes,'quotes')
+		file_loc = save_csv(quotes,'quotes', self.__database, self.__collection)
+		return(file_loc)
+
+	def get_text(self):
+		text = self.__dbm_tweets.get_text()
+		file_loc = save_csv(text,'text', self.__database, self.__collection)
 		return(file_loc)
 
 	def get_items(self, tw_type):
@@ -38,6 +54,10 @@ class NetworkGenerator:
 			self.get_replies()
 		if tw_type == 'quotes':
 			self.get_quotes()
+		if tw_type == 'stats':
+			self.get_stats()
+		if tw_type == 'text':
+			self.get_text()
 
 
 class NetworkAnalyzer:
@@ -49,7 +69,7 @@ class NetworkAnalyzer:
 
 	def read_graph(self):
 		f_name = self.__graph
-		df = pd.read_csv(f_name)
+		df = pd.read_csv(f_name,sep='\t')
 		
 		if df['status_type'].unique() == 'retweet':
 			target = 'retweeted_status_id'
@@ -78,6 +98,9 @@ class NetworkAnalyzer:
 		print('')
 
 		#level of influence by user
-		plot_with_PageRank(G_weakly, output_file=f_name+'_PR.png')
+		plot_graph(G, output_file=f_name+'.png')
 
 		return()
+
+
+
